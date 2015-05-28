@@ -1,0 +1,148 @@
+
+Wendy_Rev5.elf:     file format elf32-avr
+
+Sections:
+Idx Name          Size      VMA       LMA       File off  Algn
+  0 .text         0000007a  00000000  00000000  00000054  2**1
+                  CONTENTS, ALLOC, LOAD, READONLY, CODE
+  1 .comment      00000030  00000000  00000000  000000ce  2**0
+                  CONTENTS, READONLY
+  2 .debug_aranges 00000020  00000000  00000000  000000fe  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  3 .debug_info   000000f3  00000000  00000000  0000011e  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  4 .debug_abbrev 00000071  00000000  00000000  00000211  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  5 .debug_line   000000cf  00000000  00000000  00000282  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  6 .debug_frame  00000024  00000000  00000000  00000354  2**2
+                  CONTENTS, READONLY, DEBUGGING
+  7 .debug_str    0000016a  00000000  00000000  00000378  2**0
+                  CONTENTS, READONLY, DEBUGGING
+  8 .debug_ranges 00000010  00000000  00000000  000004e2  2**0
+                  CONTENTS, READONLY, DEBUGGING
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	12 c0       	rjmp	.+36     	; 0x26 <__ctors_end>
+   2:	19 c0       	rjmp	.+50     	; 0x36 <__bad_interrupt>
+   4:	18 c0       	rjmp	.+48     	; 0x36 <__bad_interrupt>
+   6:	17 c0       	rjmp	.+46     	; 0x36 <__bad_interrupt>
+   8:	16 c0       	rjmp	.+44     	; 0x36 <__bad_interrupt>
+   a:	15 c0       	rjmp	.+42     	; 0x36 <__bad_interrupt>
+   c:	14 c0       	rjmp	.+40     	; 0x36 <__bad_interrupt>
+   e:	13 c0       	rjmp	.+38     	; 0x36 <__bad_interrupt>
+  10:	12 c0       	rjmp	.+36     	; 0x36 <__bad_interrupt>
+  12:	11 c0       	rjmp	.+34     	; 0x36 <__bad_interrupt>
+  14:	10 c0       	rjmp	.+32     	; 0x36 <__bad_interrupt>
+  16:	0f c0       	rjmp	.+30     	; 0x36 <__bad_interrupt>
+  18:	0e c0       	rjmp	.+28     	; 0x36 <__bad_interrupt>
+  1a:	0d c0       	rjmp	.+26     	; 0x36 <__bad_interrupt>
+  1c:	0c c0       	rjmp	.+24     	; 0x36 <__bad_interrupt>
+  1e:	0b c0       	rjmp	.+22     	; 0x36 <__bad_interrupt>
+  20:	0a c0       	rjmp	.+20     	; 0x36 <__bad_interrupt>
+  22:	09 c0       	rjmp	.+18     	; 0x36 <__bad_interrupt>
+  24:	08 c0       	rjmp	.+16     	; 0x36 <__bad_interrupt>
+
+00000026 <__ctors_end>:
+  26:	11 24       	eor	r1, r1
+  28:	1f be       	out	0x3f, r1	; 63
+  2a:	cf e5       	ldi	r28, 0x5F	; 95
+  2c:	d1 e0       	ldi	r29, 0x01	; 1
+  2e:	de bf       	out	0x3e, r29	; 62
+  30:	cd bf       	out	0x3d, r28	; 61
+  32:	02 d0       	rcall	.+4      	; 0x38 <main>
+  34:	20 c0       	rjmp	.+64     	; 0x76 <_exit>
+
+00000036 <__bad_interrupt>:
+  36:	e4 cf       	rjmp	.-56     	; 0x0 <__vectors>
+
+00000038 <main>:
+ * PB6 -- INT0 (PowerIn_ElectrodeA)
+ * PB7 -- OUTPUT (RESET) <-- Active Low
+ */
+	
+	// Set I/O configuration
+	DDRA = 0b11110010;	// PORT A I/O Config -- 1 = OUTPUT, 0 = INPUT
+  38:	82 ef       	ldi	r24, 0xF2	; 242
+  3a:	8a bb       	out	0x1a, r24	; 26
+	PORTA = (0b10000010);  // 1 on Output enables output, 1 on Input enables Pull-up
+  3c:	82 e8       	ldi	r24, 0x82	; 130
+  3e:	8b bb       	out	0x1b, r24	; 27
+	DDRB = 0b10111010;	// PORT B I/O Config -- 1 = OUTPUT, 0 = INPUT
+  40:	8a eb       	ldi	r24, 0xBA	; 186
+  42:	87 bb       	out	0x17, r24	; 23
+	PORTB = (0b10000000); // 1 on Output enables output, 1 on Input enables Pull-up
+  44:	80 e8       	ldi	r24, 0x80	; 128
+  46:	88 bb       	out	0x18, r24	; 24
+
+// *** FUNCTIONS ***
+
+// Put the Microcontroller to Sleep in Power Down Mode
+static inline void _sleep(void){
+	BIT_SET(MCUCR, SE); // Sleep Enable
+  48:	85 b7       	in	r24, 0x35	; 53
+  4a:	80 62       	ori	r24, 0x20	; 32
+  4c:	85 bf       	out	0x35, r24	; 53
+	BIT_SET(MCUCR, SM1); // Idle sleep mode 10 (Power Down)
+  4e:	85 b7       	in	r24, 0x35	; 53
+  50:	80 61       	ori	r24, 0x10	; 16
+  52:	85 bf       	out	0x35, r24	; 53
+	BIT_CLEAR(MCUCR, SM0); // Idle sleep mode 10 
+  54:	85 b7       	in	r24, 0x35	; 53
+  56:	87 7f       	andi	r24, 0xF7	; 247
+  58:	85 bf       	out	0x35, r24	; 53
+}
+
+static inline void _powerSaveMode_ON(void){
+	BIT_CLEAR(PORTA, PA7); // Disable Power Supply
+  5a:	df 98       	cbi	0x1b, 7	; 27
+	BIT_CLEAR(ADCSRA, ADEN); // ADC Enable bit OFF
+  5c:	37 98       	cbi	0x06, 7	; 6
+	// ********** Main Loop ********** //
+	while(1){
+		_sleep();
+		_powerSaveMode_ON();
+		
+		if bit_is_set(PORTB, PB1){
+  5e:	c1 9b       	sbis	0x18, 1	; 24
+  60:	04 c0       	rjmp	.+8      	; 0x6a <__SREG__+0x2b>
+	BIT_CLEAR(PORTA, PA7); // Disable Power Supply
+	BIT_CLEAR(ADCSRA, ADEN); // ADC Enable bit OFF
+}
+
+static inline void _ready_H2O(void){
+	BIT_SET(PORTA, PA1); // Close Water Sensing Circuit
+  62:	d9 9a       	sbi	0x1b, 1	; 27
+	BIT_CLEAR(PORTB, PB4); // Open Charge on Electrode A
+  64:	c4 98       	cbi	0x18, 4	; 24
+	BIT_CLEAR(PORTB, PB5); // Open Charge on Electrode B
+  66:	c5 98       	cbi	0x18, 5	; 24
+  68:	ef cf       	rjmp	.-34     	; 0x48 <__SREG__+0x9>
+		_powerSaveMode_ON();
+		
+		if bit_is_set(PORTB, PB1){
+			_ready_H2O(); // Device is ready for water if the UnderVoltageInterrupt is closed
+		}
+		else if bit_is_clear(PORTB, PB1){
+  6a:	c1 99       	sbic	0x18, 1	; 24
+  6c:	ed cf       	rjmp	.-38     	; 0x48 <__SREG__+0x9>
+	BIT_CLEAR(PORTB, PB4); // Open Charge on Electrode A
+	BIT_CLEAR(PORTB, PB5); // Open Charge on Electrode B
+}
+
+static inline void _ready_Charge(void){
+	BIT_CLEAR(PORTA, PA1); // Open Water Sensing Circuit
+  6e:	d9 98       	cbi	0x1b, 1	; 27
+	BIT_CLEAR(PORTB, PB4); // Open Charge on Electrode A
+  70:	c4 98       	cbi	0x18, 4	; 24
+	BIT_CLEAR(PORTB, PB5); // Open Charge on Electrode B
+  72:	c5 98       	cbi	0x18, 5	; 24
+  74:	e9 cf       	rjmp	.-46     	; 0x48 <__SREG__+0x9>
+
+00000076 <_exit>:
+  76:	f8 94       	cli
+
+00000078 <__stop_program>:
+  78:	ff cf       	rjmp	.-2      	; 0x78 <__stop_program>
